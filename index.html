@@ -467,17 +467,26 @@
             document.getElementById('previewSection').style.display = 'block';
         }
 
-        
         function downloadImage() {
             const link = document.createElement('a');
             link.download = 'affiche-camp-priere.png';
-            //link.href = canvas.toDataURL();
-            const text = canvas.toDataURL("image/jpeg");
-            console.log(text);
+
+            // On récupère l'image à partir du canvas en format PNG
+            const imageData = canvas.toDataURL('image/png');
+
+            // On assigne la source de l'image au lien
+            link.href = imageData;
+
+            // On ajoute le lien au DOM pour simuler le clic
             document.body.appendChild(link);
-            //link.click();
-            //document.body.removeChild(link);
+
+            // On déclenche le clic pour lancer le téléchargement
+            link.click();
+
+            // On supprime le lien pour nettoyer le DOM
+            document.body.removeChild(link);
         }
+
         /*
         function downloadImage() {
             canvas.toBlob(function(blob) {
