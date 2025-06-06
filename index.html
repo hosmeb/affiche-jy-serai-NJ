@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer Affiche - Camp de Prière NJ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            background-image: url('source/bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -1; /* passe derrière le contenu */
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            background: linear-gradient(45deg, #f8f9ff 0%, #e8f0ff 100%);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: linear-gradient(45deg, #e8f0ff 0%, #d0e0ff 100%);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 1em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .preview-section {
+            display: none;
+            text-align: center;
+        }
+
+        .canvas-container {
+            display: inline-block;
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin: 5px 0;
+        }
+
+        #canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            accent-color: #667eea;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+            font-size: 1.2em;
+            padding: 18px 40px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        
+        .info-text {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <p>Vous participez à l'événement "Fête de la Nouvelle Jérusalem ?"</p>
+            <h1>🎯 Créez votre affiche</h1>
+            <p>Camp de Prière - La Lumière de la Nouvelle Jérusalem</p>
+        </div>
+        
+        <div class="content">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">Cliquez ou glissez votre photo ici</div>
+                    <div class="upload-subtext">Formats acceptés: JPG, PNG, GIF (max 10MB)</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*">
+
+                
+                <div class="info-text">
+                    Votre photo sera intégrée dans l'affiche officielle du Camp de Prière La Lumière de la Nouvelle Jérusalem
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Préparation de votre affiche...</p>
+            </div>
+
+            <div class="preview-section" id="previewSection">
+                <h3 style="margin-bottom: 10px; color: #333;">Ajustez votre photo</h3>
+                
+                <div class="canvas-container">
+                    <canvas id="canvas"></canvas>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Position horizontale</label>
+                        <input type="range" id="posX" min="0" max="100" value="50">
+                    </div>
+                    <div class="control-group">
+                        <label>Position verticale</label>
+                        <input type="range" id="posY" min="0" max="100" value="50">
+                    </div>
+                    <div class="control-group">
+                        <label>Taille de la photo</label>
+                        <input type="range" id="scale" min="20" max="200" value="100">
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button class="btn download-btn" id="downloadBtn">📥 Télécharger l'Affiche</button>
+                    <button class="btn reset-btn" id="resetBtn">🔄 Nouvelle Photo</button>
+                </div>
+                
+                <div class="info-text">
+                    Votre photo sera intégrée dans l'affiche officielle du Camp de Prière La Lumière de la Nouvelle Jérusalem
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas, ctx, backgroundImg, userImg;
+        let userImgX = 0, userImgY = 0, userImgScale = 1;
+        let canvasWidth = 800, canvasHeight = 800;
+
+        // Image de fond par défaut (votre affiche)
+        const defaultBackground = 'source/affiche_1.png';
+
+        function initCanvas() {
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            
+            // Charger l'image de fond
+            backgroundImg = new Image();
+            backgroundImg.onload = function() {
+                redrawCanvas();
+            };
+            backgroundImg.src = defaultBackground;
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Dessiner le fond
+            if (backgroundImg) {
+                ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+            }
+            
+            // Dessiner la photo utilisateur
+            if (userImg) {
+                const photoX = 105 + (userImgX / 100) * (307 - userImg.width * userImgScale);
+                const photoY = 263 + (userImgY / 100) * (335 - userImg.height * userImgScale);
+                
+                // Clipper dans la zone photo
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(105, 263, 307, 335, 20);
+                /*
+                const photoX = -20 + (userImgX / 100) * (400 - userImg.width * userImgScale);
+                const photoY = 300 + (userImgY / 100) * (400 - userImg.height * userImgScale);
+                
+                // Clipper dans la zone photo
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(-20, 300, 400, 400, 400);*/
+                
+                /*const photoX = 410 + (userImgX / 100) * (400 - userImg.width * userImgScale);
+                const photoY = 600 + (userImgY / 100) * (400 - userImg.height * userImgScale);
+                
+                // Clipper dans la zone photo
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(410, 600, 400, 600, 150);*/
+                ctx.clip();
+                
+                ctx.drawImage(
+                    userImg, 
+                    photoX, 
+                    photoY, 
+                    userImg.width * userImgScale, 
+                    userImg.height * userImgScale
+                );
+                ctx.restore();
+            }
+        }
+
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const posXSlider = document.getElementById('posX');
+            const posYSlider = document.getElementById('posY');
+            const scaleSlider = document.getElementById('scale');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const resetBtn = document.getElementById('resetBtn');
+
+            // Upload events
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Control events
+            posXSlider.addEventListener('input', (e) => {
+                userImgX = parseInt(e.target.value);
+                redrawCanvas();
+            });
+
+            posYSlider.addEventListener('input', (e) => {
+                userImgY = parseInt(e.target.value);
+                redrawCanvas();
+            });
+
+            scaleSlider.addEventListener('input', (e) => {
+                userImgScale = parseInt(e.target.value) / 200;
+                redrawCanvas();
+            });
+
+            downloadBtn.addEventListener('click', downloadImage);
+            resetBtn.addEventListener('click', resetApp);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Veuillez sélectionner un fichier image.');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Le fichier est trop volumineux. Taille maximum: 10MB.');
+                return;
+            }
+
+            showLoading();
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                userImg = new Image();
+                userImg.crossOrigin = "anonymous";
+                userImg.onload = function() {
+                    // Ajuster la taille de l'image pour qu'elle s'adapte à la zone
+                    const maxWidth = 300;
+                    const maxHeight = 330;
+                    const ratio = Math.min(maxWidth / userImg.width, maxHeight / userImg.height);
+                    
+                    userImgScale = ratio * 1.2;
+                    document.getElementById('scale').value = Math.round(ratio * 200);
+                    
+                    hideLoading();
+                    showPreview();
+                    redrawCanvas();
+                };
+                userImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showPreview() {
+            document.querySelector('.upload-section').style.display = 'none';
+            document.getElementById('previewSection').style.display = 'block';
+        }
+
+        
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'affiche-camp-priere.png';
+            //link.href = canvas.toDataURL();
+            const text = canvas.toDataURL("image/jpeg");
+            console.log(text);
+            document.body.appendChild(link);
+            //link.click();
+            //document.body.removeChild(link);
+        }
+        /*
+        function downloadImage() {
+            canvas.toBlob(function(blob) {
+            const link = document.createElement('a');
+            link.download = 'affiche-camp-priere.png';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href); // Nettoie l'URL après usage
+            }, 'image/png');
+        }*/
+
+
+        function resetApp() {
+            document.querySelector('.upload-section').style.display = 'block';
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            userImg = null;
+            userImgX = 0;
+            userImgY = 0;
+            userImgScale = 1;
+            
+            // Reset sliders
+            document.getElementById('posX').value = 50;
+            document.getElementById('posY').value = 50;
+            document.getElementById('scale').value = 200;
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initCanvas();
+            setupEventListeners();
+        });
+    </script>
+</body>
+</html>
