@@ -148,7 +148,7 @@
             justify-content: center;
             gap: 15px;
             flex-wrap: wrap;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .control-group {
@@ -221,6 +221,13 @@
             margin-top: 10px;
             font-style: italic;
         }
+        .info-text-2 {
+            text-align: center;
+            color: #ebd510e2;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            font-style: italic;
+        }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -231,9 +238,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <p>Vous participez à l'événement "Fête de la Nouvelle Jérusalem ?"</p>
+            <p>Camp de Prière La Lumière de la Nouvelle Jérusalem</p>
+            <p>Fête de la Nouvelle Jérusalem</p>
             <h1>🎯 Créez votre affiche</h1>
-            <p>Camp de Prière - La Lumière de la Nouvelle Jérusalem</p>
         </div>
         
         <div class="content">
@@ -257,7 +264,7 @@
             </div>
 
             <div class="preview-section" id="previewSection">
-                <h3 style="margin-bottom: 10px; color: #333;">Ajustez votre photo</h3>
+                <h3 style="margin-bottom: 5px; color: #333;">Ajustez votre photo</h3>
                 
                 <div class="canvas-container">
                     <canvas id="canvas"></canvas>
@@ -276,6 +283,13 @@
                         <label>Taille de la photo</label>
                         <input type="range" id="scale" min="20" max="200" value="100">
                     </div>
+                    <div class="control-group">
+                        <label>Changer le Modèle d'affiche</label>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" id="prevAffiche" style="padding: 10px 15px;">◀ Précédent</button>
+                            <button class="btn" id="nextAffiche" style="padding: 10px 15px;">Suivant ▶</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div style="margin-top: 30px;">
@@ -289,14 +303,22 @@
             </div>
         </div>
     </div>
+    
+    <div class="info-text-2">
+        Propulsé par <strong>Sublim'tion IoT</strong> ; juin 2025
+    </div>
 
     <script>
         let canvas, ctx, backgroundImg, userImg;
         let userImgX = 0, userImgY = 0, userImgScale = 1;
         let canvasWidth = 800, canvasHeight = 800;
+        const affichesCount = 4; // Modifiez selon le nombre d'affiches que vous avez
+        let currentAfficheIndex = 1;
 
-        // Image de fond par défaut (votre affiche)
-        const defaultBackground = 'source/affiche_1.png';
+        // Fonction pour obtenir le chemin de l'affiche actuelle
+        function getCurrentAffichePath() {
+            return `source/affiche_${currentAfficheIndex}.png`;
+        }
 
         function initCanvas() {
             canvas = document.getElementById('canvas');
@@ -309,7 +331,7 @@
             backgroundImg.onload = function() {
                 redrawCanvas();
             };
-            backgroundImg.src = defaultBackground;
+            backgroundImg.src = getCurrentAffichePath();
         }
 
         function redrawCanvas() {
@@ -357,6 +379,21 @@
                 ctx.restore();
             }
         }
+        
+        function changeAffiche(direction) {
+            if (direction === 'next') {
+                currentAfficheIndex = currentAfficheIndex >= affichesCount ? 1 : currentAfficheIndex + 1;
+            } else {
+                currentAfficheIndex = currentAfficheIndex <= 1 ? affichesCount : currentAfficheIndex - 1;
+            }
+            
+            // Charger la nouvelle affiche
+            backgroundImg = new Image();
+            backgroundImg.onload = function() {
+                redrawCanvas();
+            };
+            backgroundImg.src = getCurrentAffichePath();
+        }
 
         function setupEventListeners() {
             const uploadArea = document.getElementById('uploadArea');
@@ -366,6 +403,8 @@
             const scaleSlider = document.getElementById('scale');
             const downloadBtn = document.getElementById('downloadBtn');
             const resetBtn = document.getElementById('resetBtn');
+            const prevAfficheBtn = document.getElementById('prevAffiche');
+            const nextAfficheBtn = document.getElementById('nextAffiche');
 
             // Upload events
             uploadArea.addEventListener('click', () => fileInput.click());
@@ -392,6 +431,9 @@
 
             downloadBtn.addEventListener('click', downloadImage);
             resetBtn.addEventListener('click', resetApp);
+            // Navigation des affiches
+            prevAfficheBtn.addEventListener('click', () => changeAffiche('prev'));
+            nextAfficheBtn.addEventListener('click', () => changeAffiche('next'));
         }
 
         function handleDragOver(e) {
